@@ -177,14 +177,48 @@ function canAffordCost(cost, game) {
   if ((cost.quarks || 0) > (game.quarks || 0)) return false;
   return true;
 }
+// App.jsx
+const makeInitialState = () => {
+  return {
+    resources: {
+      atoms: 0,
+      energy: 0,
+      quarks: 0, // additional resources if you want
+    },
+    totalAtoms: 0, // lifetime stat
+    clickPower: 1,
+    buildings: BASE_BUILDINGS.map(b => ({ ...b, amount: 0, multiplier: 1 })),
+    upgrades: BASE_UPGRADES.map(u => ({ ...u })),
+    settings: { autosave: true },
+  };
+};
+
+// App.jsx
+const getNextCostFor = (id) => {
+  const b = state.buildings.find(b => b.id === id);
+  if (b) {
+    return {
+      atoms: Math.round(b.baseCost * Math.pow(b.costScale, b.amount)),
+      energy: Math.ceil(b.baseOutput / 2), // example secondary cost
+    };
+  }
+  const u = state.upgrades.find(u => u.id === id);
+  if (u) {
+    return {
+      atoms: u.cost,
+      energy: 0, // if needed
+    };
+  }
+  return {};
+};
+
 
 /* -------------------------
    App component
    ------------------------- */
 
 export default function App() {
-  const nextCost = getNextCostFor("synth", state); 
-  const someValue = state.atoms;
+   const [state, setState] = useState(makeInitialState);
   const [game, setGame] = useState(() => {
     // create initial game but ensure building baseCosts present (defensive)
     const g = mkInitialGame();
@@ -399,19 +433,20 @@ export default function App() {
   buildings={state.buildings}
   buyBuilding={buyBuilding}
   buyMaxBuilding={buyMaxBuilding}
-  getNextCost={getNextCostFor}
-  resources={state}
+  resources={state.resources}       // <-- pass resources
+  getNextCostFor={getNextCostFor}   // <-- pass function to get next cost
 />
 
         </section>
 
         <section className="panel upgrades-panel">
           <h2>Upgrades</h2>
-        <UpgradeList
-  upgrades={state.upgrades}
-  resources={state} // same as before
-  buyUpgrade={buyUpgrade}
-  getNextCostFor={getNextCostFor} // make sure this exists and is passed
+       <BuildingList
+  buildings={state.buildings}
+  buyBuilding={buyBuilding}
+  buyMaxBuilding={buyMaxBuilding}
+  resources={state.resources}       // <-- pass resources
+  getNextCostFor={getNextCostFor}   // <-- pass function to get next cost
 />
 
         </section>

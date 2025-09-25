@@ -5,16 +5,16 @@ export default function BuildingList({
   buildings,
   buyBuilding,
   buyMaxBuilding,
-  getNextCost,
-  resources, // should be like { atoms: ..., energy: ..., quarks: ... }
+  resources,           // expected: { atoms: ..., energy: ..., quarks: ... }
+  getNextCostFor,      // function to calculate multi-resource cost for a building
 }) {
-  if (!buildings || !resources) return null; // safety check
+  if (!buildings || !resources || !getNextCostFor) return null; // safety check
 
   return (
     <section>
       <h2>Buildings</h2>
       {buildings.map((b) => {
-        const nextCost = getNextCost(b.id) || {}; // ensure object
+        const nextCost = getNextCostFor(b.id) || {}; // ensure we always have an object
         const canAfford = Object.entries(nextCost).every(
           ([res, cost]) => (resources[res] ?? 0) >= cost
         );
@@ -30,19 +30,21 @@ export default function BuildingList({
                 </span>
               ))}
             </div>
-            <button
-              disabled={!canAfford}
-              onClick={() => buyBuilding(b.id)}
-            >
-              Buy 1
-            </button>
-            <button
-              disabled={!canAfford}
-              onClick={() => buyMaxBuilding(b.id)}
-            >
-              Buy Max
-            </button>
-            <div>Owned: {b.amount}</div>
+            <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
+              <button
+                disabled={!canAfford}
+                onClick={() => buyBuilding(b.id)}
+              >
+                Buy 1
+              </button>
+              <button
+                disabled={!canAfford}
+                onClick={() => buyMaxBuilding(b.id)}
+              >
+                Buy Max
+              </button>
+            </div>
+            <div style={{ marginTop: 4 }}>Owned: {b.amount}</div>
           </div>
         );
       })}
