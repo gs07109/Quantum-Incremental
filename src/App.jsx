@@ -15,6 +15,12 @@ import useGameSave from "./hooks/useGameSave";
     - baseOutput: { atoms, energy, quarks } (per second, positive produce, negative consume)
     - costScale: number (growth factor)
 */
+export const RESOURCE_COLORS = {
+  atoms: "#4DA6FF",   // Blue
+  energy: "#FFD633",  // Yellow
+  quarks: "#B266FF",  // Purple
+};
+
 
 const BASE_BUILDINGS = [
   {
@@ -177,6 +183,8 @@ function canAffordCost(cost, game) {
    ------------------------- */
 
 export default function App() {
+  const nextCost = getNextCostFor("synth", state); 
+  const someValue = state.atoms;
   const [game, setGame] = useState(() => {
     // create initial game but ensure building baseCosts present (defensive)
     const g = mkInitialGame();
@@ -388,17 +396,24 @@ export default function App() {
         <section className="panel buildings-panel">
           <h2>Buildings</h2>
           <BuildingList
-            buildings={game.buildings}
-            getNextCostFor={getNextCostFor}
-            buyBuilding={buyBuilding}
-            buyMaxBuilding={buyMaxBuilding}
-            game={game}
-          />
+  buildings={state.buildings}
+  buyBuilding={buyBuilding}
+  buyMaxBuilding={buyMaxBuilding}
+  getNextCost={getNextCostFor}
+  resources={state}
+/>
+
         </section>
 
         <section className="panel upgrades-panel">
           <h2>Upgrades</h2>
-          <UpgradeList upgrades={game.upgrades} buyUpgrade={buyUpgrade} game={game} />
+        <UpgradeList
+  upgrades={state.upgrades}
+  resources={state} // same as before
+  buyUpgrade={buyUpgrade}
+  getNextCostFor={getNextCostFor} // make sure this exists and is passed
+/>
+
         </section>
       </main>
 

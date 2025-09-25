@@ -1,30 +1,41 @@
 import React from "react";
+import { RESOURCE_COLORS } from "../App";
 
-function formatCost(c) {
-  const parts = [];
-  if (c.atoms) parts.push(`${c.atoms.toLocaleString()} A`);
-  if (c.energy) parts.push(`${c.energy.toLocaleString()} E`);
-  if (c.quarks) parts.push(`${c.quarks.toLocaleString()} Q`);
-  return parts.join(" + ");
-}
-
-export default function UpgradeList({ upgrades, buyUpgrade, atoms, energy, quarks }) {
+export default function UpgradeList({ upgrades, resources, buyUpgrade, getNextCostFor }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      {upgrades.map((u) => (
-        <div className="card" key={u.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <div className="card-title">{u.name}</div>
-            <div className="muted">{u.desc}</div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div className="small">{u.applied ? "Purchased" : formatCost(u.cost || { atoms: 0, energy: 0, quarks: 0 })}</div>
-            <button className="tiny" onClick={() => buyUpgrade(u.id)} disabled={u.applied || (u.cost?.atoms || 0) > atoms || (u.cost?.energy || 0) > energy || (u.cost?.quarks || 0) > quarks }>
-              {u.applied ? "✓" : "Buy"}
+    <section>
+      <h2>Upgrades</h2>
+      {upgrades.map((upgrade) => {
+        const nextCost = getNextCostFor(upgrade.id);
+        const canAfford = Object.entries(nextCost).every(
+          ([res, cost]) => resources[res] >= cost
+        );
+
+        return (
+          <div key={upgrade.id} className="upgrade-item">
+            <span>{upgrade.name}</span>
+            <button
+              disabled={!canAfford}
+              onClick={() => buyUpgrade(upgrade.id)}
+              title={Object.entries(nextCost)
+                .map(([res, cost]) => `${res}: ${cost}`)
+                .join("\n")}
+            >
+              Buy {upgrade.name} (
+              {Object.entries(nextCost).map(([res, cost], i) => (
+                <span
+                  key={res}
+                  style={{ color: RESOURCE_COLORS[res] }}
+                >
+                  {cost} {res}
+                  {i < Object.entries(nextCost).length - 1 ? ", " : ""}
+                </span>
+              ))}
+              )
             </button>
           </div>
-        </div>
-      ))}
-    </div>
+        );
+      })}
+    </section>
   );
 }
